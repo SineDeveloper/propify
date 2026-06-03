@@ -4,16 +4,18 @@ import { ImageGallery } from '@/components/ImageGallery'
 import { PropertyMap } from '@/components/PropertyMap'
 import { InquiryForm } from '@/components/InquiryForm'
 import type { Metadata } from 'next'
+import { createClient as createSimpleClient } from '@supabase/supabase-js'
 
 export async function generateMetadata({
   params,
-}: { params: { id: string } }): Promise<Metadata> {
+}: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
 
   const { data: p } = await supabase
     .from('properties')
     .select('title, description, province, district, images')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
     if (!p) return { title: 'Property Not Found' }
@@ -31,13 +33,14 @@ export async function generateMetadata({
 
 export default async function PropertyDetailPage({
   params,
-}: { params: { id: string } }) {
+}: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
 
   const { data: property } = await supabase
     .from('properties')
     .select('*, profiles(full_name, phone, avatar_url)')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!property) notFound()
@@ -45,7 +48,7 @@ export default async function PropertyDetailPage({
   // นับ views (fire-and-forget)
   supabase.from('properties')
     .update({ views: property.views + 1 })
-    .eq('id', params.id)
+    .eq('id', id)
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-8">
@@ -73,7 +76,11 @@ export default async function PropertyDetailPage({
 export const revalidate = 60 // ISR: revalidate every 60 seconds
 
 export async function generateStaticParams() {
-  const supabase = await createClient()
+  // สร้าง Client เปล่าๆ ไม่ต้องผ่านฟังก์ชันคุกกี้ของ Next.js
+  const supabase = createSimpleClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const { data } = await supabase
     .from('properties')
