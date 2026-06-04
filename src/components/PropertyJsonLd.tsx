@@ -1,4 +1,6 @@
-export function PropertyJsonLd({ property }: { property: any }) {
+import type { Property } from '@/types/property'
+
+export function PropertyJsonLd({ property }: { property: Property }) {
     const schema = {
         "@context": "https://schema.org",
         "@type": "RealEstateListing",

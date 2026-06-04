@@ -2,6 +2,17 @@
 import { createClient } from '@/lib/supabase/server'
 
 export async function submitInquiry(formData: FormData) {
+    if (
+        !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+        !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ) {
+        console.info('Demo inquiry submitted', {
+            propertyId: formData.get('propertyId'),
+            sender: formData.get('email'),
+        })
+        return
+    }
+
     const supabase = await createClient()
 
     const { error } = await supabase.from('inquiries').insert({
