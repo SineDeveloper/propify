@@ -8,14 +8,16 @@ export async function uploadPropertyImages(
   const urls: string[] = []
 
   for (const file of files) {
-    const ext = file.name.split('.').pop()
-    const path = `properties/${propertyId}/${Date.now()}.${ext}`
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
+    const path = `properties/${propertyId}/${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}.${ext}`
 
     const { error } = await supabase.storage
       .from('property-images')
       .upload(path, file, { upsert: true })
 
-    if (error) throw error
+    if (error) throw new Error(`อัพโหลดไม่สำเร็จ: ${error.message}`)
 
     const { data } = supabase.storage
       .from('property-images')
@@ -23,5 +25,6 @@ export async function uploadPropertyImages(
 
     urls.push(data.publicUrl)
   }
+
   return urls
 }
