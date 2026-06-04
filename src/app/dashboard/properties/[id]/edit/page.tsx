@@ -16,7 +16,7 @@ export default async function EditPropertyPage({
     .from('properties')
     .select('*')
     .eq('id', params.id)
-    .eq('agent_id', user!.id) // ดูได้เฉพาะของตัวเอง
+    .eq('agent_id', user!.id)
     .single()
 
   if (!property) notFound()
